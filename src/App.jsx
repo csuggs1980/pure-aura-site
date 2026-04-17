@@ -91,15 +91,11 @@ export default function PureAuraEliteHybrid() {
 
     setLoading(true);
     try {
-      const response = await fetch(WEBHOOK_URL, {
+      await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        mode: "no-cors",
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        throw new Error(`Webhook failed with status ${response.status}`);
-      }
 
       setSubmitted(true);
     } catch {
