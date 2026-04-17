@@ -41,6 +41,9 @@ export default function PureAuraEliteHybrid() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [propertyUnits, setPropertyUnits] = useState("");
+  const [portfolioType, setPortfolioType] = useState("");
+  const [needsWalkthrough, setNeedsWalkthrough] = useState(false);
 
   const quote = useMemo(() => {
     const base = 215;
@@ -79,7 +82,16 @@ export default function PureAuraEliteHybrid() {
           frequency,
           notes,
           quote,
-          leadType: quote >= 1000 ? "Walkthrough Priority" : "Quote Follow-Up",
+          propertyUnits,
+          portfolioType,
+          needsWalkthrough,
+          leadType: quote >= 1000 || needsWalkthrough ? "Walkthrough Priority" : "Quote Follow-Up",
+          autoReplyRequested: true,
+          autoReplySubject: `Pure Aura received your request`,
+          autoReplyMessage:
+            quote >= 1000 || needsWalkthrough
+              ? `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and recommend a walkthrough so we can confirm scope, access, and service needs. Our team will follow up shortly to coordinate next steps.`
+              : `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and your starting estimate begins at $${quote}. Our team will follow up shortly to confirm details and next steps.`,
         }),
       });
       setSubmitted(true);
@@ -190,7 +202,23 @@ export default function PureAuraEliteHybrid() {
                 <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={field} />
                 <input placeholder="ZIP Code" value={zip} onChange={(e) => setZip(e.target.value)} style={field} />
               </div>
-              <textarea placeholder="Tell us about the property, service schedule, or scope" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ ...field, minHeight: 110, resize: "vertical" }} />
+              {facility === "Property Management" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <input placeholder="Approx. Unit Count" value={propertyUnits} onChange={(e) => setPropertyUnits(e.target.value)} style={field} />
+                  <select value={portfolioType} onChange={(e) => setPortfolioType(e.target.value)} style={field}>
+                    <option value="">Portfolio Type</option>
+                    <option>Apartment / Multifamily</option>
+                    <option>Condo / HOA</option>
+                    <option>Office Portfolio</option>
+                    <option>Mixed Use</option>
+                  </select>
+                </div>
+              )}
+              <textarea placeholder={facility === "Property Management" ? "Tell us about the properties, turnover needs, common areas, and schedule" : "Tell us about the property, service schedule, or scope"} value={notes} onChange={(e) => setNotes(e.target.value)} style={{ ...field, minHeight: 110, resize: "vertical" }} />
+              <label style={{ display: "flex", gap: 10, alignItems: "center", color: "rgba(255,255,255,0.78)", fontSize: 14 }}>
+                <input type="checkbox" checked={needsWalkthrough} onChange={(e) => setNeedsWalkthrough(e.target.checked)} />
+                I would like a walkthrough for more accurate pricing
+              </label>
             </div>
 
             <div style={{ marginTop: 28 }}>
@@ -208,7 +236,10 @@ export default function PureAuraEliteHybrid() {
 
             {submitted && (
               <div style={{ marginTop: 18, color: "#34d399", fontWeight: 600, lineHeight: 1.7 }}>
-                We received your request. We’ll reach out shortly with next steps{quote >= 1000 ? " and walkthrough scheduling." : "."}
+                We received your request. We’ll reach out shortly with next steps{quote >= 1000 || needsWalkthrough ? " and walkthrough scheduling." : "."}
+                <div style={{ marginTop: 8, color: "rgba(209,250,229,0.85)", fontWeight: 500 }}>
+                  Your lead was also tagged for an automatic follow-up email in the submission payload.
+                </div>
               </div>
             )}
 
@@ -279,7 +310,7 @@ export default function PureAuraEliteHybrid() {
         </div>
       </section>
 
-      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "36px 24px 90px" }}>
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "36px 24px 40px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 26 }}>
           <div style={{ ...card, padding: 28 }}>
             <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
@@ -317,6 +348,82 @@ export default function PureAuraEliteHybrid() {
             <button onClick={() => window.open("https://calendly.com/management-pureauracleaningsolutions/30min", "_blank", "noopener,noreferrer")} style={{ marginTop: 18, padding: "16px 24px", background: "transparent", border: "1px solid rgba(255,255,255,0.22)", color: "white", borderRadius: 16, fontWeight: 700, width: "100%", cursor: "pointer" }}>
               Request Walkthrough
             </button>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "0 24px 40px" }}>
+        <div style={{ ...card, padding: 28 }}>
+          <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
+            Reviews
+          </div>
+          <h3 style={{ fontSize: 34, marginTop: 14, marginBottom: 0 }}>What clients expect from Pure Aura</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20, marginTop: 24 }}>
+            {[
+              {
+                title: "Reliable and responsive",
+                text: "Fast communication, dependable scheduling, and a professional experience from first contact to ongoing service.",
+              },
+              {
+                title: "Consistent presentation",
+                text: "Clean, polished results for offices, medical spaces, and properties that need to look right every time.",
+              },
+              {
+                title: "Easy to work with",
+                text: "Simple quoting, quick follow-up, and walkthrough options for larger or more complex facilities.",
+              },
+            ].map((item) => (
+              <div key={item.title} style={{ ...card, padding: 22 }}>
+                <div style={{ display: "flex", gap: 4, color: "#d4af37" }}>
+                  <Star size={16} fill="#d4af37" />
+                  <Star size={16} fill="#d4af37" />
+                  <Star size={16} fill="#d4af37" />
+                  <Star size={16} fill="#d4af37" />
+                  <Star size={16} fill="#d4af37" />
+                </div>
+                <div style={{ marginTop: 14, fontSize: 20, fontWeight: 700 }}>{item.title}</div>
+                <p style={{ marginTop: 10, color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "0 24px 90px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 26 }}>
+          <div style={{ ...card, padding: 28 }}>
+            <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
+              Property manager funnel
+            </div>
+            <h3 style={{ fontSize: 34, marginTop: 14, marginBottom: 0 }}>Built for portfolios, turnovers, and recurring service</h3>
+            <p style={{ marginTop: 18, color: "rgba(255,255,255,0.74)", lineHeight: 1.8 }}>
+              When property managers request pricing, the form captures the basics and gives your team a cleaner path to walkthroughs, recurring service, and multi-site follow-up.
+            </p>
+            <div style={{ display: "grid", gap: 14, marginTop: 22 }}>
+              {[
+                "Turnover and common-area support",
+                "Recurring cleaning for managed properties",
+                "Walkthrough-first path for larger portfolios",
+              ].map((item) => (
+                <div key={item} style={{ display: "flex", gap: 12, alignItems: "center", color: "rgba(255,255,255,0.84)" }}>
+                  <Briefcase size={18} color="#d4af37" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ ...card, padding: 28 }}>
+            <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
+              Follow-up automation
+            </div>
+            <h3 style={{ fontSize: 34, marginTop: 14, marginBottom: 0 }}>Ready for automatic follow-up emails</h3>
+            <p style={{ marginTop: 18, color: "rgba(255,255,255,0.74)", lineHeight: 1.8 }}>
+              The form now sends the email subject and message in the lead payload. Your Google Apps Script can use that data to send an automatic confirmation email right after submission.
+            </p>
+            <div style={{ marginTop: 20, color: "rgba(255,255,255,0.82)", lineHeight: 1.8 }}>
+              Suggested flow: form submitted → lead saved to sheet → auto confirmation email sent → team follow-up scheduled.
+            </div>
           </div>
         </div>
       </section>
