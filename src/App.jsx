@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ShieldCheck, Building2, Phone, Star } from "lucide-react";
+import { ShieldCheck, Building2, Phone, Star, MapPin, CalendarDays, Briefcase } from "lucide-react";
 
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyJ6QBWeGQ1p4LprYi2bDAQpqDX80svS-mp4kL3tDiHBt-N1Egr7gB7SiTSCEjneUat-Q/exec";
 
@@ -11,28 +11,80 @@ const facilityMultipliers = {
   Other: 1.15,
 };
 
+const card = {
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 24,
+  backdropFilter: "blur(10px)",
+};
+
+const field = {
+  padding: 16,
+  borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.05)",
+  color: "white",
+  width: "100%",
+  outline: "none",
+  fontSize: 15,
+};
+
 export default function PureAuraEliteHybrid() {
   const [facility, setFacility] = useState("Office");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [frequency, setFrequency] = useState("Weekly");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const quote = useMemo(() => {
     const base = 215;
-    return Math.round(base * facilityMultipliers[facility]);
-  }, [facility]);
+    const frequencyMultiplier = {
+      "One-Time": 1.2,
+      Weekly: 1,
+      "2x Weekly": 1.8,
+      "3x Weekly": 2.5,
+      Nightly: 4.2,
+      Monthly: 0.9,
+    }[frequency] || 1;
+    return Math.round(base * facilityMultipliers[facility] * frequencyMultiplier);
+  }, [facility, frequency]);
 
   const handleSubmit = async () => {
+    setSubmitError("");
+    setSubmitted(false);
+
+    if (!name || !email || !phone) {
+      setSubmitError("Please fill in your name, email, and phone number.");
+      return;
+    }
+
     setLoading(true);
     try {
       await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ name, email, phone, quote }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          city,
+          zip,
+          facility,
+          frequency,
+          notes,
+          quote,
+          leadType: quote >= 1000 ? "Walkthrough Priority" : "Quote Follow-Up",
+        }),
       });
       setSubmitted(true);
+    } catch {
+      setSubmitError("Something went wrong. Please call 740-284-8500 or request a walkthrough.");
     } finally {
       setLoading(false);
     }
@@ -40,114 +92,234 @@ export default function PureAuraEliteHybrid() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#06111a", color: "white" }}>
-
-      {/* TRUST BAR */}
-      <div style={{ textAlign: "center", padding: "12px", fontSize: 12, letterSpacing: ".2em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
+      <div
+        style={{
+          textAlign: "center",
+          padding: "12px",
+          fontSize: 12,
+          letterSpacing: ".2em",
+          textTransform: "uppercase",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          color: "rgba(255,255,255,0.72)",
+          background: "linear-gradient(90deg, rgba(212,175,55,0.18), rgba(255,255,255,0.03), rgba(212,175,55,0.12))",
+        }}
+      >
         Woman-Owned • Fully Insured • Commercial Specialists • Pittsburgh + Ohio Valley
       </div>
 
-      {/* HERO */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 60px" }}>
-
-        <div style={{ color: "#d4af37", fontSize: 14, letterSpacing: ".25em", textTransform: "uppercase" }}>
-          Pure Aura Cleaning Solutions
-        </div>
-
-        <h1 style={{ fontSize: 72, lineHeight: 1.05, marginTop: 10, maxWidth: 900 }}>
-          Premium Commercial Cleaning<br />
-          Without the Headaches
-        </h1>
-
-        <p style={{ marginTop: 24, fontSize: 20, color: "rgba(255,255,255,0.75)", maxWidth: 700 }}>
-          We handle offices, banks, medical facilities, and multi-site properties with consistency, speed, and attention to detail.
-        </p>
-
-        <div style={{ display: "flex", gap: 16, marginTop: 30 }}>
-          <button style={{ background: "#d4af37", color: "black", padding: "16px 28px", border: "none", fontWeight: 700 }}>
-            Get Instant Quote
-          </button>
-          <button style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.3)", color: "white", padding: "16px 28px" }}>
-            Request Walkthrough
-          </button>
-        </div>
-
-      </div>
-
-      {/* FORM */}
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px" }}>
-
-        <h2 style={{ fontSize: 32, marginBottom: 20 }}>
-          Get Your Quote
-        </h2>
-
-        <div style={{ display: "grid", gap: 14 }}>
-
-          <select value={facility} onChange={(e) => setFacility(e.target.value)} style={{ padding: 14 }}>
-            <option>Office</option>
-            <option>Medical</option>
-            <option>Bank</option>
-            <option>Property Management</option>
-          </select>
-
-          <input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: 14 }} />
-          <input placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} style={{ padding: 14 }} />
-          <input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ padding: 14 }} />
-
-        </div>
-
-        <div style={{ marginTop: 40 }}>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", letterSpacing: ".2em" }}>
-            STARTING ESTIMATE
-          </div>
-
-          <div style={{ fontSize: 56, color: "#d4af37", fontWeight: 700 }}>
-            ${quote}
-          </div>
-        </div>
-
-        <button onClick={handleSubmit} style={{ marginTop: 25, padding: "16px 28px", background: "#d4af37", border: "none", fontWeight: 700, fontSize: 16 }}>
-          {loading ? "Submitting..." : "Get My Quote"}
-        </button>
-
-        {submitted && (
-          <div style={{ marginTop: 20, color: "#34d399" }}>
-            We received your request. We’ll reach out shortly.
-          </div>
-        )}
-
-      </div>
-
-      {/* AUTHORITY */}
-      <div style={{ maxWidth: 1100, margin: "100px auto", padding: "0 24px" }}>
-
-        <h3 style={{ fontSize: 32 }}>
-          Trusted by Businesses That Expect Results
-        </h3>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 30, marginTop: 30 }}>
-
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          background:
+            "linear-gradient(90deg, rgba(4,9,16,0.9), rgba(8,19,31,0.62), rgba(9,25,40,0.38)), url(https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1800&q=80) center/cover",
+        }}
+      >
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "84px 24px 90px", display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 28, alignItems: "center" }}>
           <div>
+            <div style={{ color: "#d4af37", fontSize: 14, letterSpacing: ".25em", textTransform: "uppercase" }}>
+              Pure Aura Cleaning Solutions
+            </div>
+
+            <h1 style={{ fontSize: 76, lineHeight: 1.02, marginTop: 12, maxWidth: 920 }}>
+              Premium Commercial Cleaning<br />
+              Without the Headaches
+            </h1>
+
+            <p style={{ marginTop: 24, fontSize: 21, color: "rgba(255,255,255,0.76)", maxWidth: 720, lineHeight: 1.75 }}>
+              Built for offices, banks, medical facilities, and property managers who need consistency, fast communication, and a cleaner standard from day one.
+            </p>
+
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 30 }}>
+              <button onClick={() => document.getElementById("quote-card")?.scrollIntoView({ behavior: "smooth", block: "center" })} style={{ background: "#d4af37", color: "black", padding: "16px 28px", border: "none", borderRadius: 16, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                Get Instant Quote
+              </button>
+              <button onClick={() => window.open("https://calendly.com/management-pureauracleaningsolutions/30min", "_blank", "noopener,noreferrer")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.28)", color: "white", padding: "16px 28px", borderRadius: 16, fontSize: 15, cursor: "pointer" }}>
+                Request Walkthrough
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 14, marginTop: 34 }}>
+              {[
+                [ShieldCheck, "Fully Insured"],
+                [Building2, "Commercial Focused"],
+                [MapPin, "Regional Coverage"],
+                [CalendarDays, "Fast Scheduling"],
+              ].map(([Icon, label]) => (
+                <div key={label} style={{ ...card, padding: 16 }}>
+                  <Icon size={18} color="#d4af37" style={{ marginBottom: 10 }} />
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div id="quote-card" style={{ ...card, padding: 28, boxShadow: "0 20px 90px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: 12, letterSpacing: ".2em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>
+              Instant Quote
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 10 }}>
+              Get pricing started in under a minute
+            </div>
+            <p style={{ marginTop: 10, color: "rgba(255,255,255,0.68)", lineHeight: 1.7 }}>
+              Tell us the type of facility and your contact information. We’ll generate a starting estimate and follow up quickly.
+            </p>
+
+            <div style={{ display: "grid", gap: 14, marginTop: 22 }}>
+              <select value={facility} onChange={(e) => setFacility(e.target.value)} style={field}>
+                <option>Office</option>
+                <option>Medical</option>
+                <option>Bank</option>
+                <option>Property Management</option>
+              </select>
+
+              <select value={frequency} onChange={(e) => setFrequency(e.target.value)} style={field}>
+                <option>One-Time</option>
+                <option>Weekly</option>
+                <option>2x Weekly</option>
+                <option>3x Weekly</option>
+                <option>Nightly</option>
+                <option>Monthly</option>
+              </select>
+
+              <input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} style={field} />
+              <input placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} style={field} />
+              <input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={field} />
+                <input placeholder="ZIP Code" value={zip} onChange={(e) => setZip(e.target.value)} style={field} />
+              </div>
+              <textarea placeholder="Tell us about the property, service schedule, or scope" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ ...field, minHeight: 110, resize: "vertical" }} />
+            </div>
+
+            <div style={{ marginTop: 28 }}>
+              <div style={{ fontSize: 12, letterSpacing: ".22em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>
+                Starting Estimate
+              </div>
+              <div style={{ fontSize: 60, lineHeight: 1, color: "#d4af37", fontWeight: 700, marginTop: 8 }}>
+                ${quote}
+              </div>
+            </div>
+
+            <button onClick={handleSubmit} style={{ marginTop: 22, padding: "16px 28px", background: "#d4af37", border: "none", borderRadius: 16, fontWeight: 700, fontSize: 16, color: "black", width: "100%", cursor: "pointer" }}>
+              {loading ? "Submitting..." : quote >= 1000 ? "Request Pricing + Walkthrough" : "Get My Quote"}
+            </button>
+
+            {submitted && (
+              <div style={{ marginTop: 18, color: "#34d399", fontWeight: 600, lineHeight: 1.7 }}>
+                We received your request. We’ll reach out shortly with next steps{quote >= 1000 ? " and walkthrough scheduling." : "."}
+              </div>
+            )}
+
+            {submitError && (
+              <div style={{ marginTop: 18, color: "#fca5a5", fontWeight: 600, lineHeight: 1.7 }}>
+                {submitError}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "26px 24px 0" }}>
+        <div style={{ ...card, padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+          {[
+            "Responsive communication from first contact to ongoing service.",
+            "Professional presentation for decision-makers and facility teams.",
+            "Structured for recurring commercial accounts and walkthroughs.",
+          ].map((text) => (
+            <div key={text} style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7, fontSize: 15 }}>{text}</div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "90px 24px 40px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 24, alignItems: "end", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
+              Why businesses choose Pure Aura
+            </div>
+            <h2 style={{ fontSize: 42, marginTop: 12, marginBottom: 0 }}>
+              Trusted by businesses that expect results
+            </h2>
+          </div>
+          <div style={{ display: "flex", gap: 6, color: "#d4af37" }}>
+            <Star size={18} fill="#d4af37" />
+            <Star size={18} fill="#d4af37" />
+            <Star size={18} fill="#d4af37" />
+            <Star size={18} fill="#d4af37" />
+            <Star size={18} fill="#d4af37" />
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 26, marginTop: 30 }}>
+          <div style={{ ...card, padding: 24 }}>
             <ShieldCheck color="#d4af37" />
-            <h4>Fully Insured</h4>
-            <p>Reliable service backed by proper coverage and consistent quality.</p>
+            <h3 style={{ fontSize: 24, marginTop: 14 }}>Fully Insured</h3>
+            <p style={{ color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>
+              Reliable service backed by proper coverage, clear communication, and consistent quality standards.
+            </p>
           </div>
 
-          <div>
+          <div style={{ ...card, padding: 24 }}>
             <Building2 color="#d4af37" />
-            <h4>Commercial Specialists</h4>
-            <p>We focus on offices, banks, and medical facilities that need dependable service.</p>
+            <h3 style={{ fontSize: 24, marginTop: 14 }}>Commercial Specialists</h3>
+            <p style={{ color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>
+              We focus on offices, banks, medical facilities, and managed properties that need dependable recurring service.
+            </p>
           </div>
 
-          <div>
+          <div style={{ ...card, padding: 24 }}>
             <Phone color="#d4af37" />
-            <h4>Fast Response</h4>
-            <p>Quotes and communication handled quickly so you’re never waiting.</p>
+            <h3 style={{ fontSize: 24, marginTop: 14 }}>Fast Response</h3>
+            <p style={{ color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>
+              Quotes, scheduling, and follow-up are handled quickly so you are not left waiting on the next step.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1240, margin: "0 auto", padding: "36px 24px 90px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 26 }}>
+          <div style={{ ...card, padding: 28 }}>
+            <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: ".22em", textTransform: "uppercase" }}>
+              Property managers and larger facilities
+            </div>
+            <h3 style={{ fontSize: 34, marginTop: 14, marginBottom: 0 }}>
+              Need recurring service or multiple locations?
+            </h3>
+            <p style={{ marginTop: 18, color: "rgba(255,255,255,0.74)", lineHeight: 1.8, maxWidth: 700 }}>
+              Pure Aura is structured to support recurring commercial cleaning, portfolio accounts, and walkthrough-based quoting for higher-value opportunities.
+            </p>
+
+            <div style={{ display: "grid", gap: 14, marginTop: 24 }}>
+              {[
+                "Recurring office and facility cleaning",
+                "Medical and high-trust environments",
+                "Property management and multi-site support",
+              ].map((item) => (
+                <div key={item} style={{ display: "flex", gap: 12, alignItems: "center", color: "rgba(255,255,255,0.84)" }}>
+                  <Briefcase size={18} color="#d4af37" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
+          <div style={{ ...card, padding: 28 }}>
+            <div style={{ fontSize: 12, letterSpacing: ".22em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>
+              Next step
+            </div>
+            <h3 style={{ fontSize: 30, marginTop: 12 }}>Book a walkthrough</h3>
+            <p style={{ marginTop: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>
+              For larger properties, recurring service, or more specific pricing, schedule a walkthrough and we’ll build the right plan.
+            </p>
+            <button onClick={() => window.open("https://calendly.com/management-pureauracleaningsolutions/30min", "_blank", "noopener,noreferrer")} style={{ marginTop: 18, padding: "16px 24px", background: "transparent", border: "1px solid rgba(255,255,255,0.22)", color: "white", borderRadius: 16, fontWeight: 700, width: "100%", cursor: "pointer" }}>
+              Request Walkthrough
+            </button>
+          </div>
         </div>
-
-      </div>
-
+      </section>
     </div>
   );
 }
