@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { ShieldCheck, Building2, Phone, Star, MapPin, CalendarDays, Briefcase } from "lucide-react";
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyJ6QBWeGQ1p4LprYi2bDAQpqDX80svS-mp4kL3tDiHBt-N1Egr7gB7SiTSCEjneUat-Q/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxp4t9u-ZUAI6ANtppogx-CxnMZcjkVCOXW8C5xPsunI_D3o8IB1uC0k2h9FjRDQTko8w/exec";
 
 const facilityMultipliers = {
   Office: 1,
@@ -67,36 +67,54 @@ export default function PureAuraEliteHybrid() {
       return;
     }
 
+    const payload = {
+      name,
+      email,
+      phone,
+      city,
+      zip,
+      facility,
+      frequency,
+      notes,
+      quote,
+      propertyUnits,
+      portfolioType,
+      needsWalkthrough,
+      leadType: quote >= 1000 || needsWalkthrough ? "Walkthrough Priority" : "Quote Follow-Up",
+      autoReplyRequested: true,
+      autoReplySubject: `Pure Aura received your request`,
+      autoReplyMessage:
+        quote >= 1000 || needsWalkthrough
+          ? `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and recommend a walkthrough so we can confirm scope, access, and service needs. Our team will follow up shortly to coordinate next steps.`
+          : `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and your starting estimate begins at $${quote}. Our team will follow up shortly to confirm details and next steps.`,
+    };
+
     setLoading(true);
     try {
-      await fetch(WEBHOOK_URL, {
+      const response = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          city,
-          zip,
-          facility,
-          frequency,
-          notes,
-          quote,
-          propertyUnits,
-          portfolioType,
-          needsWalkthrough,
-          leadType: quote >= 1000 || needsWalkthrough ? "Walkthrough Priority" : "Quote Follow-Up",
-          autoReplyRequested: true,
-          autoReplySubject: `Pure Aura received your request`,
-          autoReplyMessage:
-            quote >= 1000 || needsWalkthrough
-              ? `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and recommend a walkthrough so we can confirm scope, access, and service needs. Our team will follow up shortly to coordinate next steps.`
-              : `Thank you for reaching out to Pure Aura Cleaning Solutions. We received your request and your starting estimate begins at $${quote}. Our team will follow up shortly to confirm details and next steps.`,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed with status ${response.status}`);
+      }
+
       setSubmitted(true);
     } catch {
-      setSubmitError("Something went wrong. Please call 740-284-8500 or request a walkthrough.");
+      setSubmitted(true);
+      setSubmitError(
+        quote >= 1000 || needsWalkthrough
+          ? "Your request was received, but online delivery had an issue. Please book a walkthrough now and our team will confirm everything directly."
+          : "Your request was received, but online delivery had an issue. Please call 740-284-8500 if you need immediate help."
+      );
+
+      if (quote >= 1000 || needsWalkthrough) {
+        window.setTimeout(() => {
+          window.open("https://calendly.com/management-pureauracleaningsolutions/30min", "_blank", "noopener,noreferrer");
+        }, 700);
+      }
     } finally {
       setLoading(false);
     }
