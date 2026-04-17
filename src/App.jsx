@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Bot,
-  Building2,
-  CalendarDays,
-  CheckCircle2,
-  ClipboardCheck,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { ShieldCheck, Building2, Phone, Star } from "lucide-react";
 
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyJ6QBWeGQ1p4LprYi2bDAQpqDX80svS-mp4kL3tDiHBt-N1Egr7gB7SiTSCEjneUat-Q/exec";
 
@@ -23,118 +11,21 @@ const facilityMultipliers = {
   Other: 1.15,
 };
 
-const frequencyMultipliers = {
-  Weekly: 1,
-  "2x Weekly": 1.8,
-  "3x Weekly": 2.5,
-  Nightly: 4.2,
-  Monthly: 0.8,
-  "One-Time": 1.15,
-};
-
-const sizeAdjustments = {
-  Small: 0,
-  Medium: 125,
-  Large: 285,
-  "Multi-Site": 500,
-};
-
-const urgencyAdjustments = {
-  Standard: 0,
-  Urgent: 75,
-  "ASAP / Emergency": 150,
-};
-
-const inputStyle = {
-  width: "100%",
-  height: "48px",
-  borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.1)",
-  background: "rgba(255,255,255,0.05)",
-  color: "white",
-  padding: "0 12px",
-};
-
-const buttonGold = {
-  background: "#d4af37",
-  color: "black",
-  padding: "16px 24px",
-  borderRadius: "18px",
-  border: "none",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const buttonGhost = {
-  background: "rgba(255,255,255,0.1)",
-  color: "white",
-  padding: "16px 24px",
-  borderRadius: "18px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-export default function PureAuraAutomationSystem() {
+export default function PureAuraEliteHybrid() {
   const [facility, setFacility] = useState("Office");
-  const [frequency, setFrequency] = useState("Weekly");
-  const [size, setSize] = useState("Small");
-  const [urgency, setUrgency] = useState("Standard");
-  const [city, setCity] = useState("");
-  const [zip, setZip] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
-  const [preferredPath, setPreferredPath] = useState("Instant Quote");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState("");
 
   const quote = useMemo(() => {
     const base = 215;
-    const adjusted =
-      base * facilityMultipliers[facility] * frequencyMultipliers[frequency] +
-      sizeAdjustments[size] +
-      urgencyAdjustments[urgency];
-    return Math.round(adjusted);
-  }, [facility, frequency, size, urgency]);
-
-  const leadTier = useMemo(() => {
-    if (frequency === "Nightly" || size === "Multi-Site" || facility === "Medical" || facility === "Property Management") {
-      return "Priority Commercial Lead";
-    }
-    if (frequency === "3x Weekly" || size === "Large") {
-      return "High-Intent Lead";
-    }
-    return "Qualified Lead";
-  }, [facility, frequency, size]);
-
-  const routeRecommendation = useMemo(() => {
-    if (size === "Multi-Site" || frequency === "Nightly" || preferredPath === "Walkthrough First") {
-      return "Route to walkthrough scheduling";
-    }
-    return "Route through instant quote follow-up";
-  }, [size, frequency, preferredPath]);
-
-  const auraMessage = useMemo(() => {
-    if (facility === "Medical") return "Medical facility — prioritize walkthrough.";
-    if (facility === "Property Management") return "Property management — multi-site opportunity.";
-    if (frequency === "Nightly") return "Nightly service — high value lead.";
-    return "Standard qualified lead.";
-  }, [facility, frequency]);
+    return Math.round(base * facilityMultipliers[facility]);
+  }, [facility]);
 
   const handleSubmit = async () => {
-    setSubmitError("");
-    setSubmitted(false);
-
-    if (!name || !email || !phone) {
-      setSubmitError("Please fill required fields.");
-      return;
-    }
-
     setLoading(true);
-
     try {
       await fetch(WEBHOOK_URL, {
         method: "POST",
@@ -142,38 +33,121 @@ export default function PureAuraAutomationSystem() {
         body: JSON.stringify({ name, email, phone, quote }),
       });
       setSubmitted(true);
-    } catch {
-      setSubmitError("Submission failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: 40, background: "#06111a", color: "white", minHeight: "100vh" }}>
-      <h1 style={{ color: "#e8c768" }}>Pure Aura Automation System</h1>
+    <div style={{ minHeight: "100vh", background: "#06111a", color: "white" }}>
 
-      <div style={{ marginTop: 30 }}>
-        <select style={inputStyle} value={facility} onChange={(e) => setFacility(e.target.value)}>
-          <option>Office</option>
-          <option>Medical</option>
-          <option>Bank</option>
-          <option>Property Management</option>
-        </select>
+      {/* TRUST BAR */}
+      <div style={{ textAlign: "center", padding: "12px", fontSize: 12, letterSpacing: ".2em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
+        Woman-Owned • Fully Insured • Commercial Specialists • Pittsburgh + Ohio Valley
+      </div>
 
-        <input style={inputStyle} placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input style={inputStyle} placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input style={inputStyle} placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      {/* HERO */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 60px" }}>
 
-        <div style={{ marginTop: 20, fontSize: 24 }}>${quote}</div>
+        <div style={{ color: "#d4af37", fontSize: 14, letterSpacing: ".25em", textTransform: "uppercase" }}>
+          Pure Aura Cleaning Solutions
+        </div>
 
-        <button style={buttonGold} onClick={handleSubmit}>
-          {loading ? "Submitting..." : "Submit"}
+        <h1 style={{ fontSize: 72, lineHeight: 1.05, marginTop: 10, maxWidth: 900 }}>
+          Premium Commercial Cleaning<br />
+          Without the Headaches
+        </h1>
+
+        <p style={{ marginTop: 24, fontSize: 20, color: "rgba(255,255,255,0.75)", maxWidth: 700 }}>
+          We handle offices, banks, medical facilities, and multi-site properties with consistency, speed, and attention to detail.
+        </p>
+
+        <div style={{ display: "flex", gap: 16, marginTop: 30 }}>
+          <button style={{ background: "#d4af37", color: "black", padding: "16px 28px", border: "none", fontWeight: 700 }}>
+            Get Instant Quote
+          </button>
+          <button style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.3)", color: "white", padding: "16px 28px" }}>
+            Request Walkthrough
+          </button>
+        </div>
+
+      </div>
+
+      {/* FORM */}
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px" }}>
+
+        <h2 style={{ fontSize: 32, marginBottom: 20 }}>
+          Get Your Quote
+        </h2>
+
+        <div style={{ display: "grid", gap: 14 }}>
+
+          <select value={facility} onChange={(e) => setFacility(e.target.value)} style={{ padding: 14 }}>
+            <option>Office</option>
+            <option>Medical</option>
+            <option>Bank</option>
+            <option>Property Management</option>
+          </select>
+
+          <input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: 14 }} />
+          <input placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} style={{ padding: 14 }} />
+          <input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ padding: 14 }} />
+
+        </div>
+
+        <div style={{ marginTop: 40 }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", letterSpacing: ".2em" }}>
+            STARTING ESTIMATE
+          </div>
+
+          <div style={{ fontSize: 56, color: "#d4af37", fontWeight: 700 }}>
+            ${quote}
+          </div>
+        </div>
+
+        <button onClick={handleSubmit} style={{ marginTop: 25, padding: "16px 28px", background: "#d4af37", border: "none", fontWeight: 700, fontSize: 16 }}>
+          {loading ? "Submitting..." : "Get My Quote"}
         </button>
 
-        {submitted && <div style={{ color: "#34d399" }}>Submitted!</div>}
-        {submitError && <div style={{ color: "#f87171" }}>{submitError}</div>}
+        {submitted && (
+          <div style={{ marginTop: 20, color: "#34d399" }}>
+            We received your request. We’ll reach out shortly.
+          </div>
+        )}
+
       </div>
+
+      {/* AUTHORITY */}
+      <div style={{ maxWidth: 1100, margin: "100px auto", padding: "0 24px" }}>
+
+        <h3 style={{ fontSize: 32 }}>
+          Trusted by Businesses That Expect Results
+        </h3>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 30, marginTop: 30 }}>
+
+          <div>
+            <ShieldCheck color="#d4af37" />
+            <h4>Fully Insured</h4>
+            <p>Reliable service backed by proper coverage and consistent quality.</p>
+          </div>
+
+          <div>
+            <Building2 color="#d4af37" />
+            <h4>Commercial Specialists</h4>
+            <p>We focus on offices, banks, and medical facilities that need dependable service.</p>
+          </div>
+
+          <div>
+            <Phone color="#d4af37" />
+            <h4>Fast Response</h4>
+            <p>Quotes and communication handled quickly so you’re never waiting.</p>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   );
 }
