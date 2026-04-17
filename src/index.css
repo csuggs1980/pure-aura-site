@@ -1,0 +1,33 @@
+:root{
+  color-scheme: dark;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  font-family:"DM Sans", sans-serif;
+  background:#06111a;
+  color:#fff;
+}
+
+a{
+  color:inherit;
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+.font-serif{
+  font-family:"Cormorant Garamond", serif;
+}
